@@ -1,16 +1,22 @@
 $(document).ready(function(){
     $('#searchbox').focus();
 });
-$.getJSON('/config.json',function(config){
+
+var ws = new WebSocket('ws://127.0.0.1:4000', 'echo-protocol');
+
+$.getJSON('../config.json',function(config){
   $("#searchbox").bind('keydown',function(e){
     if(e.keyCode===13){
       var text=this.value;
+      
+      // ws.send(text);
+
       if(text.substr(0,4)==="http"){
         //We have a youtube link for us
         $.post('/youtube',{link:text});
       }
       else{
-        $.get(config.muzi_root+"ajax/search/",{search:text},function(data){
+        $.get(config.muzi_root+"ajax/search/index.php",{search:text},function(data){
           $('#artists').remove();
           $('#tracks').remove();
           $('#albums').remove();
@@ -18,9 +24,13 @@ $.getJSON('/config.json',function(config){
           $('.data').append('<div id="artists" class="span4"><h2>Artists</h2><ol></ol></div>');
           $('.data').append('<div id="albums" class="span4"><h2>Albums</h2><ol></ol></div>');
           
+//          var message = document.getElementById('message').value;
+
           html='';
           for(i in data.tracks){
             html+='<li mid="'+data.tracks[i].id
+              +'" albumid="'
+              +data.tracks[i].albumId
               +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
               +config.pics_root
               +data.tracks[i].albumId
@@ -39,7 +49,7 @@ $.getJSON('/config.json',function(config){
             html+='<li mt="artist" mid="'
             +data.artists[i].id+
             '"><img style="float:left" class="thumbnail" width="50" height="50" src="'
-            +config.artist_pics_root
+            +config.pics_root
             +data.artists[i].id
             +'.jpg"><div class="entry1">'
             +data.artists[i].name
@@ -73,7 +83,7 @@ $.getJSON('/config.json',function(config){
   });
   
   $('.data').delegate('#tracks ol li','click',function(e){
-    console.log('We clicked on a song!');
+    // console.log('We clicked on a song!');
     var trackId=this.getAttribute('mid')
     $.get(config.muzi_root+"ajax/track/",{id:trackId},function(data){
       var url=data.file.split('/').map(function(x){return encodeURIComponent(x);}).join('/');
@@ -81,6 +91,56 @@ $.getJSON('/config.json',function(config){
         console.log("Sent a play request");
         $.get(config.muzi_root+'ajax/track/log.php',{id:data.id});
       })
+    })
+
+    var trackName = $(this).find('div.entry1').html();
+    var artistName = $(this).find('div.entry2').html();
+    var picId = trackId;
+    // only case when mid isn't the same as pic id
+    if(this.getAttribute('albumid'))
+    {
+      picId = this.getAttribute('albumid');
+      console.log("im in");
+    }
+    // incase the album is opened
+    if (!$(this).find('div.entry2').html())
+    {
+      picId = $("#tracksonly").attr("mid");
+    }
+    if(this.getAttribute('mt') == "track")
+    {
+      artistName = $(this).parent().find('h3').html();
+    }
+
+    // sends song data to node backend
+    // var jsonObj=
+    //     "{"
+    //     +"\"track\" :"
+    //     +"\""
+    //     +trackName
+    //     +"\","
+    //     +"\"artist\" :" 
+    //     +"\""
+    //     +artistName
+    //     +"\","
+    //     +"\"id\" :" 
+    //     +"\""
+    //     +trackId
+    //     +"\","
+    //     +"\"picId\": "
+    //     +"\""
+    //     +picId
+    //     +"\""
+    //     +"}";
+    var url = document.URL + "mostplayed";
+    console.log(url);
+    $.ajax({
+      type: "POST",
+      // url: "http://localhost:3000/mostplayed",
+      url: url,
+      data: {"track":trackName,"artist":artistName,"id":trackId,"picId":picId}
+    }).done(function(msg){
+      console.log(msg);
     })
   });  
   
@@ -120,7 +180,9 @@ $.getJSON('/config.json',function(config){
       $('#tracks').remove();
       $('.data').append('<div id="tracks" class="span4"><h2>Tracks</h2><ol></ol></div>');
       $('#tracks').removeClass().addClass('span4 offset4 single');
-      html='<div><img style="float:left" class="thumbnail" width="50" height="50" src="'
+      html='<div id="tracksonly" mid="'
+        +data.id
+        +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
         +config.pics_root
         +data.id
         +'.jpg"><h3>'
@@ -139,4 +201,47 @@ $.getJSON('/config.json',function(config){
     })
   });
 
+
+  $(".mp").click(function(){
+    $('#albums').remove();
+    $('#artists').remove();
+    $('#tracks').remove();
+    $('.data').append('<div id="tracks" class="span4"><h2>Tracks</h2><ol></ol></div>');
+    $('#tracks').removeClass().addClass('span4 offset4 single');
+    // html='<div id="tracksonly" mid="'
+    //   +data.id
+    //   +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
+    //   +config.pics_root
+    //   +data.id
+    //   +'.jpg"><h3>'
+    //   +data.band
+    //   +'</h3></div><div style="clear: both"><h4>'
+    //   +data.name
+    //   +'</h4></div>';
+
+    // ws.send("mp");
+    // ws.onmessage = function(message) {
+    //     var msg = message.data;
+    //     trackdata = JSON.parse(msg);
+    //     var html='';
+    //     for (i in trackdata)
+    //     // console.log(trackdata[1].song);
+    //     { 
+          
+    //         html+='<li mid="'+trackdata[i].trackId
+    //           // +'" albumid="'
+    //           // +data.tracks[i].albumId
+    //           +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
+    //           +config.pics_root
+    //           +trackdata[i].picId
+    //           +'.jpg"><div class="entry1">'
+    //           +trackdata[i].song
+    //           +'</div><div class="entry2">'
+    //           +trackdata[i].artist
+    //           +'</div><div style="clear:both">'
+    //           +'</div></li>'
+    //     }
+    //     $('#tracks ol').html(html);
+    // };
+  })
 })

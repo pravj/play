@@ -2,12 +2,14 @@ exports.index = function(req, res){
   res.sendfile("index.html");
 };
 var vlc=require("../lib/vlc.js");
+// var vlc=require("../dbconfig.js");
 
 exports.play = function(req,res){
   //console.log("Playing https://music.sdslabs.co.in/"+req.body.url);
   vlc.play(req.body.url,req.body.id);
   res.send("Playing");
 };
+
 exports.current = function(req,res){
   res.send(vlc.getCurrent());
 };
@@ -33,4 +35,4 @@ exports.list=function(req,res){
 
 //exports.pause=function(req,res){
 //  res.send(vlc.pause());
-//}
+  //}
