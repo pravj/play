@@ -56,3 +56,13 @@ h1 a {
 h1 a:hover {
   text-decoration: none;
 }
+
+.link:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link {
+  color: #e8d069;
+  display: inline-block;
+}

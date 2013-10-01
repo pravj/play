@@ -9,8 +9,6 @@ $.getJSON('../config.json',function(config){
     if(e.keyCode===13){
       var text=this.value;
       
-      // ws.send(text);
-
       if(text.substr(0,4)==="http"){
         //We have a youtube link for us
         $.post('/youtube',{link:text});
@@ -113,30 +111,10 @@ $.getJSON('../config.json',function(config){
     }
 
     // sends song data to node backend
-    // var jsonObj=
-    //     "{"
-    //     +"\"track\" :"
-    //     +"\""
-    //     +trackName
-    //     +"\","
-    //     +"\"artist\" :" 
-    //     +"\""
-    //     +artistName
-    //     +"\","
-    //     +"\"id\" :" 
-    //     +"\""
-    //     +trackId
-    //     +"\","
-    //     +"\"picId\": "
-    //     +"\""
-    //     +picId
-    //     +"\""
-    //     +"}";
-    var url = document.URL + "mostplayed";
+    var url = document.URL + "log";
     console.log(url);
     $.ajax({
       type: "POST",
-      // url: "http://localhost:3000/mostplayed",
       url: url,
       data: {"track":trackName,"artist":artistName,"id":trackId,"picId":picId}
     }).done(function(msg){
@@ -208,40 +186,29 @@ $.getJSON('../config.json',function(config){
     $('#tracks').remove();
     $('.data').append('<div id="tracks" class="span4"><h2>Tracks</h2><ol></ol></div>');
     $('#tracks').removeClass().addClass('span4 offset4 single');
-    // html='<div id="tracksonly" mid="'
-    //   +data.id
-    //   +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
-    //   +config.pics_root
-    //   +data.id
-    //   +'.jpg"><h3>'
-    //   +data.band
-    //   +'</h3></div><div style="clear: both"><h4>'
-    //   +data.name
-    //   +'</h4></div>';
-
-    // ws.send("mp");
-    // ws.onmessage = function(message) {
-    //     var msg = message.data;
-    //     trackdata = JSON.parse(msg);
-    //     var html='';
-    //     for (i in trackdata)
-    //     // console.log(trackdata[1].song);
-    //     { 
-          
-    //         html+='<li mid="'+trackdata[i].trackId
-    //           // +'" albumid="'
-    //           // +data.tracks[i].albumId
-    //           +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
-    //           +config.pics_root
-    //           +trackdata[i].picId
-    //           +'.jpg"><div class="entry1">'
-    //           +trackdata[i].song
-    //           +'</div><div class="entry2">'
-    //           +trackdata[i].artist
-    //           +'</div><div style="clear:both">'
-    //           +'</div></li>'
-    //     }
-    //     $('#tracks ol').html(html);
-    // };
+    $.ajax({
+      type: "POST",
+      url: document.URL + "mostplayed",
+      data:{}
+    }).done(function(msg){
+        trackdata = JSON.parse(msg);
+        var html='';
+        for (i in trackdata)
+        { 
+            html+='<li mid="'+trackdata[i].trackId
+              // +'" albumid="'
+              // +data.tracks[i].albumId
+              +'"><img style="float:left" class="thumbnail" width="50" height="50" src="'
+              +config.pics_root
+              +trackdata[i].picId
+              +'.jpg"><div class="entry1">'
+              +trackdata[i].song
+              +'</div><div class="entry2">'
+              +trackdata[i].artist
+              +'</div><div style="clear:both">'
+              +'</div></li>'
+        }
+        $('#tracks ol').html(html);
+    })
   })
 })

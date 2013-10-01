@@ -48,7 +48,7 @@ app.get('/queue',routes.queuelist);
 app.get('/list',routes.list);
 app.post('/play',routes.play);
 app.post('/youtube',routes.youtube);
-app.post('/mostplayed',function(req,res){
+app.post('/log',function(req,res){
   var song = req.body.track;
   console.log(song);
   var sql = 'INSERT INTO list (' 
@@ -83,13 +83,27 @@ app.post('/mostplayed',function(req,res){
       {
           dbconnect.query(sql,function(err1)
               {
-                  if (err1) 
+                  if (err1)
                           console.log("Insert err: " + err1);
               });
       }
   })
   res.send("beach");
 });
+app.post('/mostplayed',function(req,res){
+  // res.sendfile("mostplayed.html");
+  dbconnect.query("SELECT * FROM list ORDER BY count DESC ",function(err,rows){
+      if (err)
+      {
+          console.log("error3: " + err);
+      } else
+      {
+          var jsonObj = JSON.stringify(rows);
+          res.send(jsonObj);
+      }
+  })
+});
+
 app.listen(3000, function(){
   console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
